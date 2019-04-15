@@ -180,9 +180,13 @@ ess$uemp5yr[ess$uemp5yr == 2] <- 0
 de <- ess[ess$cntry == "DE",]
 fr <- ess[ess$cntry == "FR",]
 
+# subsetting data for 2012 and 2013
+de13 <- de[de$essround %in% c(7, 8),]
+fr12 <- fr[fr$essround %in% c(7, 8),]
+
 # criando variável para voto no rrpp selecionado na Alemanha
-de$vote_rrp <- ifelse(de$prtvade1 == 6 | de$prtvbde1 == 6 | de$prtvcde1 == 6 |
-                        de$prtvdde1 == 6 | de$prtvede1 == 6, 1, 0)
+de$vote_rrp <- ifelse(de$prtvade1 == 7 | de$prtvbde1 == 7 | de$prtvcde1 == 7 |
+                        de$prtvdde1 == 7 | de$prtvede1 == 8, 1, 0)
 de$vote_rrp[is.na(de$vote_rrp)] <- 0
 
 # criando variável para o voto no partido selecionado na França
@@ -192,6 +196,16 @@ fr$vote_rrp[is.na(fr$vote_rrp)] <- 1
 
 # reunindo novamente os datasets
 ess <- rbind(de, fr)
+
+# criando variável
+de13$vote_rrp <- ifelse(de13$prtvede1 == 6 & de13$prtvede2 == 6, 1, 0)
+table(de13$vote_rrp)
+
+fr12$vote_rrp <- ifelse(fr12$prtvtcfr == 2, 1, 0)
+table(fr12$vote_rrp)
+
+# reunindo novamente os datasets
+ess12 <- rbind(de13, fr12)
 
 ##### testando alguns modelos #####
 library(lme4)
@@ -224,10 +238,132 @@ vars <- c("cntry", "regionde", "intewde", "regionfr", "cedition", "cseqno", "ess
 # criando datasets com as variáveis de interesse
 ess2 <- ess[vars]
 fr2 <- fr[vars]
+ess122 <- ess12[vars]
 
 ##### salvando novos datasets #####
 write.csv(ess2, "ess_de-fr.csv")
 write.csv(fr2, "ess_fr.csv")
+write.csv(ess122, "ess_de_fr_12.csv")
+
+##### carregando dados do CHES #####
+setwd("C:/Users/test/Desktop/Lucas/Ciência Política UFPE - Mestrado/2018.2 - Partidos políticos e sistemas partidários/scripts")
+ches <- read.csv("1999-2014_CHES_dataset_means.csv")
+setwd("C:/Users/test/Desktop/Projeto de dissertação/scripts")
+
+# subsetting data for west-eu countries
+west_eu <- ches[ches$eastwest == "west",]
+
+# subsetting radical right parties
+rrp <- west_eu[west_eu$family == "rad right" | west_eu$party == "LN",]
+
+# parties dataset
+stargazer(rrp[c("country", "party")], summary = F, type = "html", out = "parties.htm")
 
 ##### carregando CLEA dataset #####
+setwd("./scripts")
 load("clea_lc_20181119.rdata")
+
+##### retirando países do dataset para análise #####
+
+# subsetting observations of France
+clea_fr <- clea_lc_20181119[clea_lc_20181119$ctr_n == "France",]
+
+# subsetting France and Germany
+clea_defr <- clea_lc_20181119[clea_lc_20181119$ctr_n %in% c("Germany", "France"),]
+
+# subsetting West eu data
+clea_westeu <- clea_lc_20181119[clea_lc_20181119$ctr_n %in% c("France", "Germany",
+                                                              "Italy", "Austria",
+                                                              "Belgium", "Denmark",
+                                                              "Finland", "Greece",
+                                                              "Netherlands", "Sweden", 
+                                                              "UK"),]
+
+##### salvando datasets #####
+write.csv(clea_fr, file = "clea_fr.csv")
+write.csv(clea_defr, file = "clea_de-fr.csv")
+write.csv(clea_westeu, file = "clea_westeu.csv")
+
+##### testando dados - algumas estatísticas descritivas #####
+library(ggplot2)
+cleafr <- read.csv("clea_fr.csv")
+cleafr$pty_n[cleafr$pty_n == "National Front"] <- "front national"
+
+cleafn <- cleafr[cleafr$pty_n =="front national",]
+
+# gráfico de linha 1 - desempenho médio do FN por ano
+line1 <- ggplot(cleafn, aes(x = yr, y = pvs1)) +
+  theme_classic() +
+  scale_x_continuous(limits = c(1978, 2017), breaks = c(1978, 1981, 1986, 1988,
+                                                        1993, 1997, 2002, 2007, 
+                                                        2012, 2017)) +
+  theme(plot.title = element_text(face = "bold", hjust = .5, size = 12),
+        axis.text.x = element_text(angle = 90)) +
+  labs(x = "Ano", y = "Média de votos (%)") +
+  ggtitle("Média de votos do FN por ano de eleição") +
+  stat_summary(fun.y = mean, geom = "line")
+
+# desempenho do partido por distrito ao longo dos anos
+line2 <- ggplot(cleafn, aes(x = yr, y = pvs1)) +
+  geom_line(aes(group = cst), alpha = .1) +
+  geom_smooth(method = "lm", colour = "red", se = F) +
+  theme_classic() +
+  ggtitle("Porcentagem de votos do FN nas constituências por ano de eleição") +
+  labs(x = "Ano", y = "Porcentagem de votos") +
+  theme(plot.title = element_text(size = 12, hjust = 2, face = "bold")) +
+  scale_x_continuous(limits = c(1978, 2017), breaks = c(1978, 1981, 1986, 1988,
+                                                        1993, 1997, 2002, 2007, 
+                                                        2012, 2017))
+
+############################# VERSÃO 12/04 ####################################
+setwd("C:/Users/test/Desktop/Projeto de dissertação")
+
+library(ffbase)
+ess <- read.csv2.ffdf(file = "ESS1-8e01.csv")
+
+ess2 <- read.csv("ESS1-8e01.csv")
+
+vars <- c("cntry", "cregion", "cedition", "cseqno", "essround", 
+          "idno", "dweight", "pspwght", "pweight",  "tvpol", "rdpol", "nwsppol",  
+          "polintr", "psppsgv", "psppsgva", "psppipl", "psppipla", "polcmpl", 
+          "contplt", "wrkprty", "badge", "clsprty", "prtdgcl", "mmbprty", 
+          "lrscale", "trstprl", "trstplt", "trstprt", "trstep", "stflife", 
+          "stfeco", "stfgov", "stfdem", "prtyban", "euftf", "imdfetn", "impcntr", 
+          "imbgeco", "imueclt",  "imwbcnt", "imwbcrm", "noimbro", "qfimcmt", 
+          "imptrad", "ipstrgv", "impsafe", "jbscr", "optftr", "fltanx", "nhpftr", 
+          "lfwrs", "uemplwk", "acetalv", "eduyrs", "blue_c", "uemp5yr", "gndr", 
+          "agea", "vote", "vote_rrp", "prtvade1", "prtvbde1", "prtvcde1", "prtvdde1", 
+          "prtvede1", "prtvde2",  "prtvade2", "prtvbde2", "prtvcde2", "prtvdde2", 
+          "prtvede2", "prtvtfr",  "prtvtafr", "prtvtbfr", "prtvtcfr", "prtclde", 
+          "prtclade", "prtclbde", "prtclcde", "prtcldde", "prtclede", "prtclafr", 
+          "prtclbfr", "prtclcfr", "prtcldfr", "prtclefr", "prtmbde", "prtmbade", 
+          "prtmbbde", "prtmbcde", "prtmbafr", "prtmbbfr", "prtmbcfr", "prtvtat", 
+          "prtvtaat", "prtvrbat", "prtvtbe", "prtvtabe", "prtvtbbe", "prtvtcbe",
+          "prtvtdk", "prtvtadk", "prtvtbdk", "prtvtcdk", "prtvtfi", "prtvtafi",
+          "prtvtbfi", "prtvtcfi", "prtvtdfi", "prtvtgb", "prtvtagb", "prtvtbgb",
+          "prtvtgr", "prtvtagr", "prtvtbgr", "prtvtcgr", "prtvtit", "prtvtait", 
+          "prtvtbit", "prtvtnl", "prtvtanl", "prtvtbnl", "prtvtcnl", "prtvtdnl",
+          "prtvtenl", "prtvtfnl", "prtvtse", "prtvtase", "prtvtbse")
+
+ess_vars <- ess2[vars]
+
+# subsetting data by country
+at <- ess2[ess2$cntry == "AT",]
+be <- ess2[ess2$cntry == "BE",]
+de <- ess2[ess2$cntry == "DE",]
+dk <- ess2[ess2$cntry == "DK",]
+fi <- ess2[ess2$cntry == "FI",]
+fr <- ess2[ess2$cntry == "FR",]
+gb <- ess2[ess2$cntry == "GB",]
+gr <- ess2[ess2$cntry == "GR",]
+it <- ess2[ess2$cntry == "IT",]
+nl <- ess2[ess2$cntry == "NL",]
+sw <- ess2[ess2$cntry == "SE",]
+
+##### criando variável para voto em populistas por país #####
+# austria
+at$vote_rrp <- ifelse(at$prtvtat == 3 | at$prtvtaat %in% c(3, 4) | at$prtvtbat %in% c(3, 4), 1, 0)
+table(at$vote_rrp)
+
+# bélgica
+be$vote_rrp <- ifelse(be$p)
