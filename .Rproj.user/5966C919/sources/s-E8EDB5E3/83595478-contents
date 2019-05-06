@@ -1,0 +1,73 @@
+# criando função que retorna a soma de dois elementos
+
+add2 <- function(x, y) {
+        x + y
+}
+
+add2(3, 5)
+
+# função que retorna os números do vetor x que são maiores que 10
+above10 <- function(x) {
+        use <- x > 10
+        x[use]
+}
+
+# função que retorna as observações do vetor x que são maiores que a do segundo
+# elemento da função
+above <- function(x, n) {
+        use <- x > n
+        x[use]
+}
+
+x <- 1 : 20
+above(x, 12)
+
+# criando função que retorna as médias de cada coluna de um data frame
+columnmean <- function(y, removeNA = TRUE) {
+        nc <- ncol(y)
+        means <- numeric(nc)
+        for(i in 1:nc) {
+                means[i] <- mean(y[, i], na.rm = removeNA)
+        }
+        means 
+}
+
+columnmean(airquality)
+
+formals(columnmean)
+
+x <- Sys.time()
+x
+p <- as.POSIXlt(x)
+unclass(p)
+
+# função que eleva determinado número ao cubo
+cube <- function(x, n) {
+        x^3
+}
+
+cube(3)
+
+x <- 1 : 10
+if(x > 5) {
+        x <- 0
+}
+
+f <- function(x) {
+        g <- function(y) {
+                y + z
+        }
+        z <- 4
+        x + g(x)
+}
+
+z <- 10
+f(3)
+
+x <- 5
+y <- if(x < 3) {
+        NA
+} else {
+        10
+}
+y

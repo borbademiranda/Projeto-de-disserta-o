@@ -1,0 +1,99 @@
+---
+title: "Franceses não europeus: uma análise do eleitorado do Front National"
+author: "Lucas Borba de Miranda"
+date: "14 de março de 2019"
+output: 
+ pdf_document:
+ latex_engine: xelatex 
+ citation_package: biblatex
+mainfont: Times New Roman
+fontsize: 12pt
+margin-left: 3cm
+margin-top: 3cm
+margin-right: 2cm
+margin-bottom: 2cm
+interlinespace: 1.5
+number_sections: true
+bibliography: Minha biblioteca.bib
+csl: associacao-brasileira-de-normas-tecnicas.csl
+---
+<style>
+body {
+text-align: justify}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r carregando dados, include=FALSE}
+# working directory
+setwd("c:/Users/test/Desktop/Projeto de dissertação/scripts")
+
+##### loading datasets #####
+cleafr <- read.csv("clea_fr.csv")
+essfr <- read.csv("ess_fr.csv")
+
+# renaming observations
+cleafr$pty_n[cleafr$pty_n == "National Front"] <- "front national"
+
+# subsetting FN data
+cleafn <- cleafr[cleafr$pty_n == "front national",]
+essfn <- essfr[essfr$vote_rrp == 1,]
+
+# ess without FN voters
+essgeneral <- essfr[essfr$vote_rrp == 0,]
+
+```
+
+# 1. Introdução  
+
+Desde os anos 1980 é observado o surgimento de demandas ditas pós-materialistas em diversos países ao redor do mundo. Ideias relacionadas à promoção da qualidade de vida, como a importância do cuidado com o meio ambiente ou redução da jornada de trabalho, tornaram-se cada vez mais enfatizadas pelos indivíduos, principalmente entre aqueles que possuíam melhor nível educacional e financeiro. Tais demandas levaram ao surgimento dos chamados partidos verdes, que tinham como principais pontos em seus programas propostas progressista relacionadas à preservação ambiental e importância de valores voltados para a qualidade de vida do indivíduo [@van_haute_green_2016]. Ronald Inglehart sugere que os partidos verdes que ganharam protagonismo na política europeia durante a década de 1970 e 1980 refletem um novo alinhamento entre eleitores e partidos políticos, sugerindo o surgimento de uma nova clivagem [@inglehart_silent_1971; @inglehart_new_1985; c.f. @lipset_party_1967]. Porém, nos anos finais da década de 1990 e início do século XXI, uma nova família partidária passou a ter protagonismo no cenário político Europeu, reinvindicando demandas tradicionalistas e um retorno a um *status quo ante*. Tais partidos, denominados populistas de direita radical (Radical Right Populist Parties - RRPPs), surgiram evidenciando demandas contrárias à integração da União Europeia e contra o *establishment* político nos respectivos países europeus [@rydgren_sociology_2007].
+
+Podemos observar o fenômeno da ascensão de partidos RRP em diversos países europeus, tando na porção oriental quanto ocidental deste continente. Para o primeiro caso, podemos citar os exemplos da Hungria, e a Polônia, onde predominam o Jobbik e o *Prawo i Sprawiedliwość* (PiS, em português: Lei e Justiça), respectivamente. NO caso da Europa Ocidental podemos citar os exemplos da França (*Front National* - FN), Alemanha (*Alternativ für Deustschland* - AfD), Itália (*Lega Nord* - LN), Áustria (*Freiheitliche Partei Österreichs* - FPÖ) e o Reino Unido (*United Kingdom Independence Party* - UKIP). Este último partido, apesar de não possuir resultados eleitorais consistentes nem cadeiras no parlamento inglês, foi um dos principais atores na campanha a favor do *brexit*[^1].
+
+Propostas relacionadas ao rompimento dos respectivos países com a União Europeia tem sido o principal ponto do programa dos partidos da direita radical europeia nos últimos anos [@betz_radical_1994; @inglehart_trump_2016]. Tal conjunto de propostas foi fundamental para levar esta família partidária ao *mainstream* da política, o que deu a tais partídos o adjetivo de "eurocéticos". Estudos recentes mostram que atitudes relativas à integração da UE, bem como sentimentos contrários a imigrantes e refugiados estão entre os principais preditores do voto em partidos de direita radical no atual contexto europeu [@szocsik_euroscepticism_2018; @steinmayr_did_2017; @davis_immigration_2017; @van_der_brug_why_2005; @doerschler_radical_2018]. Muitos partidos de direita radical foram denominados no momento de sua fundação como *single-issue parties*, o que revela o quão importante é o caráter anti-UE e anti-imigração para tais partidos.
+
+Fatores ligaros à insatisfação dos eleitores com a política e com os partidos também são destacados pela literatura que estuda o voto em partidos populistas de direita radical. [@bowler_right-wing_2017] argumenta que o eleitorado de RRPPs é composto em sua maioria por eleitores insatisfeitos com os partidos, com a política e com os partidos. [@katz_democracy_2018] investigam a relação entre a teoria do *cartel party* desenvolvida pelos autores e o crescimento de partidos populistas na Europa. O caráter antipartido dos populistas é "baseado na sua capacidade autoproclamada de quebrar o que é referido como 'cômodos arranjos' que existem entre as alternativas políticas estabelecidas" (Ibid. p. 152). A percepção dos eleitores da existência de um *cartel* e a crença de que os populistas - auto-proclamados *outsiders* - podem ser uma boa alternativa para retirar do poder os ditos corruptos atuam como uma explicação para o bom desempenho eleitoral desses partidos.
+
+O surgimento de partidos tradicionalistas no século XXI vai na contramão de um *zeitgeist* onde predominam ideias progressistas e pós-materialistas. Nesse sentido, esta pesquisa busca responder à pergunta: o crescimento eleitoral de partidos populistas de direita radical reflete uma nova clivagem eleitoral na Europa? Minha hipótese é que o eleitorado de tais partidos é composto por indivíduos contrários ao processo de integração da União Europeia (UE). Tais indivíduos enxergam no *establishment* político a incapacidade de lidar com tais demandas, gerando sentimentos de insatisfação política com os partidos no governo. O objetivo aqui é buscar tal resposta através do estudo do caso francês, que possui potencial de generalização tendo em vista que é uma democracia longeva e um país com com tradições democráticas consolidadas,[^2] onde os alinhamentos entre partidos e eleitores através de clivagens sociais ocorrem mais enfaticamente.
+
+## 1.1. O caso analisado
+
+As origens do Front National remontam à França do Pós-Guerra. Surgiu abarcando ideais da Action Française, organização que surgiu durante do Caso Dreyfus  no século XIX e que tinha um forte caráter nacionalista. A extrema direita na França no pós-guerra, mais especificamente durante do governo de De Gaulle, se encontrava fragmentada, tendo como as principais correntes as organizações Occident, a Ordre Nouveau e o Groupe Union Défense. Foi da Ordre Nouveau que o Front National surgiu, no ano de 1972, como um novo partido para concorrer às eleições do ano seguinte. Jean-Marie Le Pen – que esteve presente na Guerra da Argélia, com participação paramilitar e até então apoiador do movimento contra a independência da Argélia – foi fundador e líder da nova organização [@davies_extreme_2002], e assim seguiu até ser sucedido por sua filha no ano de 2011.
+
+Apesar de ter sido fundado oficialmente como partido no ano de 1972, o partido permaneceu sem resultados expressivos até o início da década de 1980, quando em 1983, na cidade de Dreux, o secretário geral do Front National à época, Jean-Pierre Stirbois, obteve 16,72% dos votos (@ajchenbaum_retrocontroverse_2002). O primeiro grande feito do Front National e de seu fundador ocorreu durante as eleições presidenciais de 2002, onde Jean-Marie Le Pen conseguiu levar a disputa para o segundo turno, conseguindo 16,86% dos votos no primeiro turno. No segundo turno, o percentual de votos de Le Pen foi praticamente inalterado, e perdeu com 17,79% dos votos, contra 82,21% de Jacques Chirac (@linterieur_les_2019).
+
+No ano de 2011, Marine Le Pen, filha de Jean-Marie Le Pen, assume a liderança do FN e inicia uma campanha de “desradicalização” do partido, procurando sempre deixar de lado atitudes racistas e antissemitas, e sempre reforçando o caráter democrático do FN. Uma atenção maior é dada às propostas de controle migratório, restrição dos vistos e de pedidos de asilo, redução do desemprego – promovendo uma visão dos imigrantes como sendo contribuintes para o aumento do mesmo (@fn_programme_2012) – e a criação de uma moeda nacional, visando a retirada do Euro de circulação na França. A saída da União Europeia também é defendida pelo partido, sendo assim um dos principais partidos eurocéticos do velho continente.
+
+As eleições para o Parlamento Europeu de 2014 consolidaram o partido no cenário político, em âmbito nacional e continental. O FN elegeu 24 eurodeputados para o Parlamento Europeu, cerca de um terço do total de deputados que a França tem nesta instituição, se constituindo como o maior partido francês no órgão legislativo da UE. As eleições presidenciais de 2017 foi marcada por um resultado expressivo da líder do partido e candidata ao cargo executivo francês, Marine Le Pen, que obteve 21,3% e 33,9% dos votos no primeiro e segundo turno, respectivamente. O resultado ficou marcado como o melhor desempenho eleitoral do FN nas eleições presidenciais francesas desde a sua fundação, registrando o sucesso da nova fase do partido. 
+
+```{r, include=FALSE}
+library(tidyverse)
+library(broom)
+library(lme4)
+library(ggplot2)
+library(dotwhisker)
+library(stargazer)
+
+# gráfico de linha
+line1 <- ggplot(cleafn, aes(x = yr, y = pvs1)) +
+  theme_classic() +
+  scale_x_continuous(limits = c(1978, 2017), breaks = c(1978, 1981, 1986, 1988,
+                                                        1993, 1997, 2002, 2007, 
+                                                        2012, 2017)) +
+  theme(plot.title = element_text(face = "bold", hjust = .5, size = 12),
+        axis.text.x = element_text(angle = 90)) +
+  labs(x = "Ano", y = "Média de votos (%)") +
+  ggtitle("Média de votos do FN por ano de eleição") +
+  stat_summary(fun.y = mean, geom = "line")
+```
+```{r echo=FALSE}
+line1
+
+```
+
+
+
+[^1]: Apesar das interrupções democráticas durante o governo do Marechal Pétain no Regime de Vichy, durante os anos de 1942 a 1944.
+[^2]: Como ficou conhecido o processo de saída do Reino Unido da União Europeia.

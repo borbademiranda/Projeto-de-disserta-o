@@ -180,9 +180,9 @@ setwd("C:/Users/test/Desktop/Projeto de dissertação")
 
 ##### loading datasets #####
 cleadefr <- read.csv("./scripts/clea_de-fr.csv")
-essdefr <- read.csv("./scripts/ess_de-fr.csv")
-de17 <- read.csv("2017.csv")
-bwl17 <- read.csv("btw17_wbz_zweitstimmen.csv", sep = ";")
+essdefr <- read.csv("./scripts/ess_westeu.csv")
+de17 <- read.csv("./scripts/2017.csv")
+bwl17 <- read.csv("./scripts/btw17_wbz_zweitstimmen.csv", sep = ";")
 cleaeu <- read.csv("scripts/clea_westeu.csv")
 
 # subsetting rrp parties
@@ -242,10 +242,16 @@ write.csv(clea_rrp, "clea_westeu_rrp.csv")
 rm(list = c("cleaeu", "rrpaus", "rrpbe", "rrpdk", "rrpfi", "rrpfr", "rrpge", 
             "rrpgr", "rrpit", "rrpnl", "rrpsd", "rrpuk"))
 
-# subsetting FN data
+clea_rrp <- read.csv("clea_westeu_rrp.csv")
+
+##### inverting variables values #####
+essdefr$imwbcnt <- max(essdefr$imwbcnt, na.rm = T) - essdefr$imwbcnt
+essdefr$imueclt <- max(essdefr$imueclt, na.rm = T) - essdefr$imueclt
+
+# subsetting rrp data
 essrrp <- essdefr[essdefr$vote_rrp == 1,]
 
-# ess without FN voters
+# ess without rrp voters
 essgeneral <- essdefr[essdefr$vote_rrp == 0,]
 
 ##### descriptive analysis #####
@@ -310,7 +316,7 @@ line4 <- ggplot(cleadefr[cleadefr$ctr_n == "Germany" & cleadefr$pty_n %in% c("na
 
 ggsave("NPD_cst_level_timeseries.png", plot = line4, device = "png", width = 8, height = 5)
 
-# lineplot 5 - média de votos do PS (Finlândia) por ano
+# lineplot 5 - média de votos dos cinco maiores partidos por ano
 line5 <- ggplot() +
   stat_summary(data = clea_rrp[clea_rrp$ctr_n == "Finland",], aes(x = yr, y = pvs1),
                fun.y = mean, geom = "line", color = "blue") +
@@ -323,9 +329,11 @@ line5 <- ggplot() +
   stat_summary(data = clea_rrp[clea_rrp$ctr_n == "Netherlands",],
                aes(x = yr, y = pvs1), fun.y = mean, geom = "line", color = "orange") +
   theme_classic() +
-  labs(x = "Ano da eleição", y = "Média de votos (%)") +
-  ggtitle("Média de votos na direita radical (cinco maiores partidos)") +
-  theme(plot.title = element_text(size = 12, hjust = .5, face = "bold")) +
+  labs(x = "Ano da eleição", y = "Média de votos (%)", caption = "Figura 3
+  Elaboração do autor com dados do CLEA") +
+  ggtitle("Média de votos na direita radical (cinco primeiros países)") +
+  theme(plot.title = element_text(size = 12, hjust = .5, face = "bold"),
+        plot.caption = element_text(hjust = .5)) +
   scale_x_continuous(limits = c(1950, 2017), breaks = seq(1950, 2017, 5)) +
   geom_vline(xintercept = 2007, linetype = 2, color = "grey 60")
   
@@ -394,6 +402,9 @@ bwl17 %>% mutate(outlier = ifelse(is_outlier(AfD), AfD, as.numeric(NA))) %>%
   geom_boxplot() +
   geom_text(aes(label = outlier))
 
+##### carregando banco de dados com observações da europa ocidental #####
+clea_rrp <- read.csv("./scripts/clea_rrp.csv")
+
 # boxplot 4 - distribuição dos votos da direita radical por país
 clea_rrp$pvs1[clea_rrp$pvs1 %in% c(-990, -992, -994)] <- NA
 
@@ -402,7 +413,8 @@ box4 <- ggplot(data = clea_rrp, aes(x = reorder(ctr_n, +pvs1), y = pvs1)) +
   stat_summary(fun.y = mean, geom = "point", colour = "red", size = 1.5) +
   coord_flip() +
   theme_classic() +
-  labs(x = "País", y = "Porcentagem de votos", caption = "") +
+  labs(x = "País", y = "Porcentagem de votos", caption = "Figura 2
+    Elaboração do autor com base nos dados do CLEA") +
   ggtitle("Distribuição dos votos da direita radical por país") +
   theme(plot.title = element_text(size = 12, hjust = .5, face = "bold"),
         plot.caption = element_text(hjust = .5)) +
@@ -414,11 +426,12 @@ hist1 <- ggplot(data = clea_rrp, aes(x = reorder(pty_n, +pvs1), y = pvs1)) +
   stat_summary(fun.y = mean, geom = "bar", aes(group = 1)) +
   coord_flip() +
   theme_classic() +
-  labs(x = "Partido", y = "Média de votos (%)") +
+  labs(x = "Partido", y = "Média de votos (%)", caption = "Figura 1
+  Elaboração do autor com dados do CLEA") +
   ggtitle("Média da porcentagem de votos por partido") +
   theme(plot.title = element_text(size = 12, hjust = .5, face = "bold"), 
         plot.caption = element_text(hjust = .5))
-ggsave("hist_partymean.png", plot = hist1, device = "png", width = 5, height = 6)
+ggsave("hist_partymean.png", plot = hist1, device = "png", width = 5, height = 5)
 
 box5 <- ggplot(data = clea_rrp, aes(x = reorder(ctr_n, -pvs1), y = pvs1, fill = pty_n)) +
   geom_boxplot(position = "dodge2")
@@ -432,7 +445,7 @@ dplot <- function(VB, VW, Numero, Titulo) {
   ggplot() +
     geom_density(data = essgeneral, aes(x = VB, fill = "black"), alpha = .3,
                  adjust = 3.5) +
-    geom_density(data = rrp, aes(x = VW, fill = "grey"), alpha = .3, adjust = 1.5) +
+    geom_density(data = essrrp, aes(x = VW, fill = "grey"), alpha = .3, adjust = 1.5) +
     scale_x_continuous(name = "", breaks = 0 : 10, limits = c(0,10), expand = c(.01,.01)) +
     scale_y_continuous(name = "", breaks =  NULL, labels = NULL, limits = c(0, .5)) +
     scale_fill_identity(name = "", labels = c("Parties", "Voters")) +
@@ -448,8 +461,8 @@ dplot <- function(VB, VW, Numero, Titulo) {
 dplotb <- function(VB, VW, Numero, Titulo) {
   ggplot() +
     geom_density(data = essgeneral, aes(x = VB, fill = "black"), alpha = .3,
-                 adjust = 5) +
-    geom_density(data = rrp, aes(x = VW, fill = "grey"), alpha = .3, adjust = 3) +
+                 adjust = 7) +
+    geom_density(data = essrrp, aes(x = VW, fill = "grey"), alpha = .3, adjust = 5) +
     scale_x_continuous(name = "", breaks = 0 : 4, limits = c(0,4), expand = c(.01,.01)) +
     scale_y_continuous(name = "", breaks =  NULL, labels = NULL, limits = c(0, .7)) +
     scale_fill_identity(name = "", labels = c("Parties", "Voters")) +
@@ -498,37 +511,62 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   }
 }
 
+
 # density plot 1 - voters' left-right self positioning divided by general 
 # electorate and rrp voters
-dplot1 <- dplot(essgeneral$lrscale, rrp$lrscale, 1, 
+dplot1 <- dplot(essgeneral$lrscale, essrrp$lrscale, 1, 
                 "Auto posicionamento numa escala esquerda-direita") +
   scale_fill_identity(name = "", labels = c("Eleitorado", "Eleitor RRPP"), 
                       guide = "legend")
 
 # density plot 2 - voters' perception about immigrants
-dplot2 <- dplot(essgeneral$imwbcnt, rrp$imwbcnt, 2, "Imigrantes fazem do país um lugar melhor")
+dplot2 <- dplot(essgeneral$imwbcnt, essrrp$imwbcnt, 2, "Imigrantes fazem do país um lugar pior")
 
 # density plot 3 - voters' feelings about the cultural impact of immigrants
-dplot3 <- dplot(essgeneral$imueclt, rrp$imueclt, 3, "Imigrantes enriquecem o país culturalmente")
+dplot3 <- dplot(essgeneral$imueclt, essrrp$imueclt, 3, "Imigrantes prejudicam a cultura do país")
 
 # density plot 4 - it is important to folow customs and traditions
-dplot4 <- dplotb(essgeneral$imdfetn, rrp$imdfetn, 4, "Restrição de imigrantes de grupos étnicos diferentes")
+dplot4 <- dplotb(essgeneral$imdfetn, essrrp$imdfetn, 4, "Restrição de imigrantes de grupos étnicos diferentes")
 
 # saving plots
-ggsave("dplots1.png", plot = multiplot(dplot1, dplot2, cols = 2), 
+ggsave("dplots1_westeu.png", plot = multiplot(dplot1, dplot2, cols = 2), 
        device = "png",  width = 8, height = 3, units = "in")
 
-ggsave("dplots2.png", plot = multiplot(dplot3, dplot4, cols = 2), device = "png",
+ggsave("dplots2_westeu.png", plot = multiplot(dplot3, dplot4, cols = 2), device = "png",
        width = 8, height = 3, units = "in")
 
-# t-test
-tt_lrscale <- t.test(essgeneral$lrscale, essrrp$lrscale)
-tt_imw <- t.test(essgeneral$imwbcnt, rrp$imwbcnt)
-tt_imu <- t.test(essgeneral$imueclt, rrp$imueclt)
-tt_imd <- t.test(essgeneral$imdfetn, rrp$imdfetn)
+##### t-test #####
+tt_lrscale <- t.test(essrrp$lrscale, essgeneral$lrscale) 
+tt_imw <- t.test(essgeneral$imwbcnt, essrrp$imwbcnt)
+tt_imu <- t.test(essgeneral$imueclt, essrrp$imueclt)
+tt_imd <- t.test(essrrp$imdfetn, essgeneral$imdfetn)
+
+# convertendo os objetos para data dataframe
+tt_lrscale <- tt_lrscale %>% tidy()
+tt_imw <- tt_imw %>% tidy()
+tt_imu <- tt_imu %>% tidy()
+tt_imd <- tt_imd %>% tidy()
+
+# juntando os testes t
+t <- bind_rows(tt_lrscale, tt_imw, tt_imu, tt_imd)
+
+# função para renomear linhas e colunas da tabela
+stargazer_htest = function (data, ...) {
+  summary = data.frame(`T-statistic` = data$statistic,
+                       DF = data$parameter,
+                       `P value` = data$p.value,
+                       `Alternative hypothesis` = data$alternative,
+                       check.names = FALSE)
+  stargazer(summary, flip = TRUE, summary = FALSE,
+            notes = paste(data$method, data$data.name, sep = ': '), ...)
+}
+
+# stargazer t-test
+stargazer_htest(t, column.labels = c("lrscale", "imwbcnt", "imueclt", "imdfetn"), 
+                out = "t-test.htm", type = "html")
 
 # line plot of the mean satisfaction with government
-line5 <- ggplot(data = essdefr, aes(x = essround, y = stfgov)) +
+line6 <- ggplot(data = essgeneral, aes(x = essround, y = stfgov)) +
   theme_classic() +
   theme(plot.title = element_text(size = 12, hjust = .5, face = "bold"),
         plot.caption = element_text(hjust = .5)) +
@@ -543,7 +581,7 @@ line5 <- ggplot(data = essdefr, aes(x = essround, y = stfgov)) +
   coord_cartesian(ylim = c(0, 11))
 
 # plot mean trust in politicians
-line6 <- ggplot(data = essdefr, aes(x = essround, y = trstplt)) +
+line7 <- ggplot(data = essgeneral, aes(x = essround, y = trstplt)) +
   theme_classic() +
   theme(plot.title = element_text(size = 12, hjust = .5, face = "bold"),
         plot.caption = element_text(hjust = .5)) +
@@ -558,7 +596,7 @@ line6 <- ggplot(data = essdefr, aes(x = essround, y = trstplt)) +
   coord_cartesian(ylim = c(0, 11))
 
 # plot mean satisfaction with government of populist voters
-line7 <- ggplot(data = rrp, aes(x = essround, y = stfgov)) +
+line8 <- ggplot(data = essrrp, aes(x = essround, y = stfgov)) +
   theme_classic() +
   theme(plot.title = element_text(size = 12, hjust = .5, face = "bold"),
         plot.caption = element_text(hjust = .5)) +
@@ -573,7 +611,7 @@ line7 <- ggplot(data = rrp, aes(x = essround, y = stfgov)) +
   coord_cartesian(ylim = c(0, 11))
 
 # plot mean trust in politicians populist voters
-line8 <- ggplot(data = rrp, aes(x = essround, y = trstplt)) +
+line9 <- ggplot(data = essrrp, aes(x = essround, y = trstplt)) +
   theme_classic() +
   theme(plot.title = element_text(size = 12, hjust = .5, face = "bold"),
         plot.caption = element_text(hjust = .5)) +
@@ -587,10 +625,10 @@ line8 <- ggplot(data = rrp, aes(x = essround, y = trstplt)) +
   stat_summary(fun.y = mean, geom = "line", colour = "black", aes(group = 1)) +
   coord_cartesian(ylim = c(0, 11))
 
-ggsave("stf.png", plot = multiplot(line5, line7, cols = 2), device = "png", 
+ggsave("stf.png", plot = multiplot(line6, line8, cols = 2), device = "png", 
        height = 3, width = 8)
 
-ggsave("trust.png", plot = multiplot(line6, line8, cols = 2), device = "png", 
+ggsave("trust.png", plot = multiplot(line7, line9, cols = 2), device = "png", 
        height = 3, width = 8)
 
 # criando dummy para os muito insatisfeitos e pouco confiantes
@@ -604,17 +642,117 @@ ggally_mysmooth <- function(data, mapping, ...){
     geom_density(adjust = 2)
 }
 
-pairs1 <- essdefr %>% select(imwbcnt, noimbro, stfdem, trstplt) %>%  
-  ggpairs(lower = "blank", diag =  list(continuous = wrap(ggally_densityDiag, adjust = 1.5))) +
+pairs1 <- essdefr %>% select(imwbcnt, noimbro, stfgov, trstplt) %>%  
+  ggpairs(lower = "blank", diag =  list(continuous = wrap(ggally_densityDiag, adjust = 3))) +
   theme_void() +
   ggtitle("Correlação e densidade das variáveis de interesse") +
-  theme(plot.title = element_text(hjust = .5, size = 12, face = "bold"))
+  labs(caption = "Figura 7
+Elaboração do autor com base nos dados do ESS")
+  theme(plot.title = element_text(hjust = .5, size = 12, face = "bold"),
+        plot.caption = element_text(hjust = .5))
 
-ggsave("ggpairs1.png", plot = pairs1, device = "png", width = 6, height = 3.5)
+ggsave("ggpairs1_westeu.png", plot = pairs1, device = "png", width = 6, height = 3.5)
 
 ##### testing models #####
+library(lme4)
 attach(essdefr)
+library(sjPlot)
+library(sjmisc)
 
-logit1 <- glm(data = essdefr, vote_rrp ~ imwbcnt + factor(essround), family = "binomial")
+logit1 <- glmer(data = essdefr, vote_rrp ~ imwbcnt + (1 | cregion), family = "binomial")
 summary(logit1)
 
+logit2 <- glmer(data = essdefr, vote_rrp ~ noimbro + (1 | cregion), 
+                family = "binomial",
+                control = glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
+summary(logit2)
+
+logit3 <- glmer(data = essdefr, vote_rrp ~ imwbcnt*noimbro + (1 | cregion), 
+              family = "binomial",
+              control = glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
+summary(logit3)
+
+logit4 <- glmer(data = essdefr, vote_rrp ~ imwbcnt + noimbro + imwbcnt*noimbro +
+                stfgov + trstplt + gndr + agea + eduyrs + blue_c + (1 | cregion), 
+              family = "binomial")
+summary(logit4)
+
+logit6 <- glmer(data = essdefr, vote_rrp ~ imwbcnt + noimbro + imwbcnt*noimbro +
+                  mean(essdefr$stfgov) + mean(essdefr$trstplt) + mean(essdefr$gndr) + 
+                  mean(essdefr$agea) + mean(essdefr$eduyrs) + mean(essdefr$blue_c) + (1 | cregion), 
+                family = "binomial")
+
+# convertendo modelos para formato tidy
+m1_tidy <- tidy(logit1)
+m2_tidy <- tidy(logit2)
+m3_tidy <- tidy(logit3)
+m4_tidy <- tidy(logit4)
+
+# modifying model names
+# model 1
+m1_tidy <- m1_tidy %>% 
+  mutate(model = "Modelo 1")
+
+# repeat for model 2
+m2_tidy <- m2_tidy %>% 
+  mutate(model = "Modelo 2")
+
+# model3 
+m3_tidy <- m3_tidy %>% mutate(model = "Modelo 3") 
+
+# model 4
+m4_tidy <- m4_tidy %>% mutate(model = "Modelo 4")
+
+# binding model data frames together
+all_models <- bind_rows(m1_tidy, m2_tidy, m3_tidy, m4_tidy)
+
+# renaming vars
+all_models <- all_models %>% 
+  relabel_predictors(c("imwbcnt" = "Percepção imigração",
+                       "sd_(Intercept).cregion" = "S.D. região",
+                       "noimbro" = "Nº de imigrantes",
+                       "imwbcnt:noimbro" = "Imwbcnt*Nº de imigrantes",
+                       "stfgov" = "Satisfação governo",
+                       "trstplt" = "Confiança políticos",
+                       "gndr" = "Gênero",
+                       "agea" = "Idade (anos)",
+                       "eduyrs" = "Educação (anos)",
+                       "blue_c" = "Blue-collar"))
+
+# gráfico de coeficientes
+coef1 <- dwplot(all_models, show_intercept = F,
+                vline = geom_vline(xintercept = 0, colour = "grey 60", linetype = 2)) +
+  theme_minimal() +
+  ggtitle("Coeficientes dos modelos logísticos multinível") +
+  labs(x = "Coeficientes com C.I. 95% (Em log odds)") +
+  theme(plot.title = element_text(size = 12, hjust = 0.5, face = "bold"),
+       legend.title = element_text(size = 10, face = "bold"),
+       plot.caption = element_text(hjust = 0.5),
+       legend.position = "right",
+       legend.title.align = .5) + 
+  scale_color_discrete(name = "Modelos")
+ggsave("coef1.png", plot = coef1, device = "png", width = 6, height = 4)
+  
+# gráfico para probabilidades preditas
+probs1 <- plot_model(logit4, type = "int", terms = c("imwbcnt", "noimbro [0, 50, 100")) +
+  theme_minimal() +
+  ggtitle("Probabilidades preditas para o voto na direita radical") +
+  labs(y = "Probabilidade predita", x = "Percepção sobre imigração", color = "Nº imigrantes") +
+  theme(plot.title = element_text(hjust = .3, face = "bold", size = 14),
+        legend.title.align = .5) 
+ggsave("probs1.png", plot = probs1, device = "png", width = 7, height = 4)
+
+# modelo com interação de gênero
+
+logit5 <- glmer(data = essdefr, vote_rrp ~ imwbcnt*noimbro*gndr + (1 | cregion), family = "binomial")
+summary(logit5)
+
+probs2 <- plot_model(logit5, type = "int") +
+  theme_minimal() +
+  ggtitle("Probabilidades preditas para o voto na direita radical") +
+  labs(y = "Probabilidade predita", x = "Percepção sobre imigração", color = "Nº imigrantes") +
+  theme(plot.title = element_text(hjust = .3, face = "bold", size = 14),
+        legend.title.align = .5)
+
+ggsave("probs2.png", plot = probs2, device = "png", width = 7, height = 4)
+  
