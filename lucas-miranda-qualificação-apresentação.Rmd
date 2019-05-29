@@ -1,0 +1,262 @@
+---
+title: |
+        | "Estamos em nossa casa":
+        | imigração e voto na direita radical
+author: "Lucas B. de Miranda"
+date: "31 de maio de 2019"
+theme: "Berlin"
+colortheme: "seagull"
+output: beamer_presentation
+fig_width: 5
+fig_height: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+setwd("C:/Users/test/Desktop/Projeto de dissertação")
+```
+
+```{r packages, include=FALSE}
+library(tidyverse)
+library(plyr)
+
+```
+
+```{r workspace, include=FALSE}
+load("C:/Users/test/Desktop/Projeto de dissertação/scripts/lucas-miranda-qualificação-workspace.RData")
+```
+
+# Introdução
+## Pergunta de pesquisa
+Opiniões negativas sobre imigrantes aumentam as chances de voto na direita radical?
+
+## Hipótese principal
+- Rejeição aos imigrantes * interação nativos/estrangeiros -> voto na direita radical
+- A rejeição do eleitor aos imigrantes é moderada pelo nível de interação entre a população nativa e estrangeira.
+
+## Argumento
+- Clivagens eleitor-partido (Lipset; Rokkan, 1967)
+- Realinhamento de preferências e a revolução silenciosa (Inglehart, 1971, 1985)
+- A contrarrevolução silenciosa (Ignazi, 1992)
+- Teoria do contato e teoria da competição
+
+# Delimitação temática
+## Ideologia e posicionamento
+- Nacionalismo étnico (Golder, 2016)
+- Euroceticismo
+- O termo *direita radical*
+
+# Justificativa
+## Justificativa acadêmica
+### Problemas empíricos da literatura
+- Falácia ecológica
+- Produção de coeficientes enviesados
+- Ausência de modelagem de séries temporais
+
+Implementação de modelos hierárquicos com dados individuais e amostras aleatórias
+
+### Lacunas teóricas a serem supridas
+- Re-alinhamento e clivagens 
+
+# Dados e método
+## Variáveis
+### Variável dependente
+- $y = \text{Voto auto-declarado em partidos de direita radical}$ 
+- Variável binária
+
+### Variáveis independentes
+- $x_{1} = \text{Opinião sobre imigrantes}$
+- $x_{2} = \text{Percepção sobre o número de imigrantes no país}$
+- $x_{3} = \text{Opinião sobre imigrantes} * \text{Percepção sobre o número de imigrantes no país}$
+- $x_{4} = \text{Proximidade com um partido político}$
+- $x_{5} = \text{Insatisfação com a política}$
+
+## Estratégia empírica
+Utlização de modelos logit multinível.
+
+### Notação geral
+$logit(y_{i} = 1) = \alpha_{c} + \beta_{1, c}x1_{i, c} + \beta_{2, c}x2_{i, c} + \beta_{3, c}x3_{i, c} + \beta_{4, c}x4_{i, c} + \beta_{5, c}x5_{i, c} + \zeta_{i, c} + \varepsilon_{i, c}$ onde:  
+$c$ = região do respondente  
+$\zeta$ = vetor de controles
+
+# Uma análise exploratória
+## Hipóteses
+- $H_{1}$: opinião negativa sobre imigrantes -> voto na direita radical
+- $H_{2}$: pouca interação com imigrantes -> voto na direita radical
+- $H_{3}$: opiniões negativas sobre imigrantes * pouca interação c/ imigrantes -> voto na direita radical
+- $H_{4}$: não-partidarismo -> voto na direita radical
+- $H_{5}$: insatisfação política -> voto na direita radical
+
+## Desempenho dos partidos
+```{r fig1, echo=FALSE}
+
+hist1
+```
+
+## Desempenho da família partidária por país
+```{r fig2, fig.width=6, fig.height=4, fig.align='center', echo=FALSE}
+box1
+```
+
+## Série temporal da média de votos nos cinco primeiros países
+```{r fig3, fig.width=6, fig.height=4, fig.align='center', echo=FALSE, warning=FALSE}
+line1 +
+  labs(x = "Ano da eleição", y = "Média de votos (%)", caption = "Figura 3
+       Elaboração do autor com dados do CLEA
+       Vermelho: Áustria, Azul: Finlândia, Azul claro: França, Laranja: Holanda, Verde: Itália")
+
+```
+
+## Posicionamento do eleitor
+```{r fig 4, out.width='.49\\linewidth', fig.width=5, fig.height=3, echo=FALSE, warning=FALSE}
+dplot1
+dplot2
+dplot3
+dplot4
+
+```
+
+
+## Teste-t das variáveis de percepção sobre imigração
+```{r t-test, fig.width=3.5, fig.height=4, fig.align='center', echo=FALSE, warning=FALSE}
+# criando função para cálculo de intervalo de confiança
+summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=TRUE,
+                      conf.interval=.95, .drop=TRUE) {
+  library(plyr)
+  
+  # New version of length which can handle NA's: if na.rm==T, don't count them
+  length2 <- function (x, na.rm=FALSE) {
+    if (na.rm) sum(!is.na(x))
+    else       length(x)
+  }
+  
+  # This does the summary. For each group's data frame, return a vector with
+  # N, mean, and sd
+  datac <- ddply(data, groupvars, .drop=.drop,
+                 .fun = function(xx, col) {
+                   c(N    = length2(xx[[col]], na.rm=na.rm),
+                     mean = mean   (xx[[col]], na.rm=na.rm),
+                     sd   = sd     (xx[[col]], na.rm=na.rm)
+                   )
+                 },
+                 measurevar
+  )
+  
+  # Rename the "mean" column    
+  datac <- rename(datac, c("mean" = measurevar))
+  
+  datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
+  
+  # Confidence interval multiplier for standard error
+  # Calculate t-statistic for confidence interval: 
+  # e.g., if conf.interval is .95, use .975 (above/below), and use df=N-1
+  ciMult <- qt(conf.interval/2 + .5, datac$N-1)
+  datac$ci <- datac$se * ciMult
+  
+  return(datac)
+}
+
+
+# adicionando intervalos de confiança para as variáveis
+
+# criando pequenos bancos de dados separados com as estatísticas t para cada uma das variáveis
+essdefr2 <- essdefr[complete.cases(essdefr), ]
+
+bd2 <- summarySE(essdefr, measurevar = "imwbcnt", groupvars = "vote_rrp")
+bd3 <- summarySE(essdefr, measurevar = "lrscale", groupvars = "vote_rrp")
+bd4 <- summarySE(essdefr, measurevar = "imueclt", groupvars = "vote_rrp")
+bd5 <- summarySE(essdefr, measurevar = "imdfetn", groupvars = "vote_rrp")
+
+# juntando os pequenos bancos de dados
+bd <- bind_rows(bd3, bd2, bd4, bd5)
+
+# plotando gráfico
+ggplot(data = bd, aes(y = imwbcnt, x = vote_rrp)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = imwbcnt - ci, ymax = imwbcnt + ci), width = .1) +
+  ggtitle("Teste-t - opinião sobre imigrantes") +
+  labs(y = "Imigrantes fazem do país um lugar pior", x = "Eleitor RRPP", 
+       caption = "Figura 6 - Elaboração do autor com dados do ESS") +
+  scale_y_continuous(limits = c(0, 10), breaks = 0 : 10) +
+  scale_x_continuous(breaks = 0 : 1) +
+  theme_classic() +
+  theme(plot.title = element_text(face = "bold", hjust = .5, size = 12),
+        plot.caption = element_text(hjust = .5))
+
+```
+
+## Satisfação com o governo e confiança nos políticos
+```{r confiança, fig 6, out.width='.49\\linewidth', fig.width=5, fig.height=3, echo=FALSE, warning=FALSE}
+
+# média de satisfação com o governo
+line6 <- ggplot(data = essgeneral, aes(x = essround, y = stfgov)) +
+  theme_classic() +
+  theme(plot.title = element_text(size = 12, hjust = .5, face = "bold"),
+        plot.caption = element_text(hjust = .5)) +
+  scale_y_continuous(limits = c(1, 11), breaks = 1 : 11) +
+  scale_x_continuous(limits = c(1, 8), breaks = 1 : 8, labels = c("2002", "2004",
+                                                                  "2006", "2008",
+                                                                  "2010", "2012",
+                                                                  "2014", "2016")) +
+  labs(x = "Ano do survey", y = "Média de satisfação com o governo") +
+  ggtitle("Satisfação com o governo") +
+  stat_summary(fun.y = mean, geom = "line", colour = "black", aes(group = 1)) +
+  coord_cartesian(ylim = c(0, 11))
+
+# média de confiança nos políticos
+line7 <- ggplot(data = essgeneral, aes(x = essround, y = trstplt)) +
+  theme_classic() +
+  theme(plot.title = element_text(size = 12, hjust = .5, face = "bold"),
+        plot.caption = element_text(hjust = .5)) +
+  scale_y_continuous(limits = c(1, 11), breaks = 1 : 11) +
+  scale_x_continuous(limits = c(1, 8), breaks = 1 : 8, labels = c("2002", "2004",
+                                                                  "2006", "2008",
+                                                                  "2010", "2012",
+                                                                  "2014", "2016")) +
+  labs(x = "Ano do survey", y = "Média da confiança nos políticos") +
+  ggtitle("Confiança nos políticos") +
+  stat_summary(fun.y = mean, geom = "line", colour = "black", aes(group = 1)) +
+  coord_cartesian(ylim = c(0, 11))
+
+# satisfação com os políticos - eleitores populistas
+line8 <- ggplot(data = essrrp, aes(x = essround, y = stfgov)) +
+  theme_classic() +
+  theme(plot.title = element_text(size = 12, hjust = .5, face = "bold"),
+        plot.caption = element_text(hjust = .5)) +
+  scale_y_continuous(limits = c(1, 11), breaks = 1 : 11) +
+  scale_x_continuous(limits = c(1, 8), breaks = 1 : 8, labels = c("2002", "2004",
+                                                                  "2006", "2008",
+                                                                  "2010", "2012",
+                                                                  "2014", "2016")) +
+  labs(x = "Ano do survey", y = "Média de satisfação com o governo") +
+  ggtitle("Satisfação com o governo - eleitor populista") +
+  stat_summary(fun.y = mean, geom = "line", colour = "black", aes(group = 1)) +
+  coord_cartesian(ylim = c(0, 11))
+
+# média de confiança nos políticos - eleitores populistas
+line9 <- ggplot(data = essrrp, aes(x = essround, y = trstplt)) +
+  theme_classic() +
+  theme(plot.title = element_text(size = 12, hjust = .5, face = "bold"),
+        plot.caption = element_text(hjust = .5)) +
+  scale_y_continuous(limits = c(1, 11), breaks = 1 : 11) +
+  scale_x_continuous(limits = c(1, 8), breaks = 1 : 8, labels = c("2002", "2004",
+                                                                  "2006", "2008",
+                                                                  "2010", "2012",
+                                                                  "2014", "2016")) +
+  labs(x = "Ano do survey", y = "Média da confiança nos políticos") +
+  ggtitle("Confiança nos políticos - eleitor populista") +
+  stat_summary(fun.y = mean, geom = "line", colour = "black", aes(group = 1)) +
+  coord_cartesian(ylim = c(0, 11))
+
+line6
+line7
+line8
+line9
+
+```
+
+## Correlação das variáveis de interesse
+```{r fig 7, fig.width=6, fig.height=4, fig.align='center', echo=FALSE, warning=FALSE}
+pairs1
+```
+
