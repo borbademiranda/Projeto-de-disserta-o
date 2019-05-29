@@ -181,6 +181,67 @@ line1 <- ggplot() +
 
 ggsave("timeseries_rrpp.png", plot = line5, device = "png", width = 6, height = 3.5) 
 
+# média de satisfação com o governo
+line6 <- ggplot(data = essgeneral, aes(x = essround, y = stfgov)) +
+  theme_classic() +
+  theme(plot.title = element_text(size = 12, hjust = .5, face = "bold"),
+        plot.caption = element_text(hjust = .5)) +
+  scale_y_continuous(limits = c(1, 11), breaks = 1 : 11) +
+  scale_x_continuous(limits = c(1, 8), breaks = 1 : 8, labels = c("2002", "2004",
+                                                                  "2006", "2008",
+                                                                  "2010", "2012",
+                                                                  "2014", "2016")) +
+  labs(x = "Ano do survey", y = "Média de satisfação com o governo") +
+  ggtitle("Satisfação com o governo") +
+  stat_summary(fun.y = mean, geom = "line", colour = "black", aes(group = 1)) +
+  coord_cartesian(ylim = c(0, 11))
+
+# média de confiança nos políticos
+line7 <- ggplot(data = essgeneral, aes(x = essround, y = trstplt)) +
+  theme_classic() +
+  theme(plot.title = element_text(size = 12, hjust = .5, face = "bold"),
+        plot.caption = element_text(hjust = .5)) +
+  scale_y_continuous(limits = c(1, 11), breaks = 1 : 11) +
+  scale_x_continuous(limits = c(1, 8), breaks = 1 : 8, labels = c("2002", "2004",
+                                                                  "2006", "2008",
+                                                                  "2010", "2012",
+                                                                  "2014", "2016")) +
+  labs(x = "Ano do survey", y = "Média da confiança nos políticos") +
+  ggtitle("Confiança nos políticos") +
+  stat_summary(fun.y = mean, geom = "line", colour = "black", aes(group = 1)) +
+  coord_cartesian(ylim = c(0, 11))
+
+# satisfação com os políticos - eleitores populistas
+line8 <- ggplot(data = essrrp, aes(x = essround, y = stfgov)) +
+  theme_classic() +
+  theme(plot.title = element_text(size = 12, hjust = .5, face = "bold"),
+        plot.caption = element_text(hjust = .5)) +
+  scale_y_continuous(limits = c(1, 11), breaks = 1 : 11) +
+  scale_x_continuous(limits = c(1, 8), breaks = 1 : 8, labels = c("2002", "2004",
+                                                                  "2006", "2008",
+                                                                  "2010", "2012",
+                                                                  "2014", "2016")) +
+  labs(x = "Ano do survey", y = "Média de satisfação com o governo") +
+  ggtitle("Satisfação com o governo - eleitor populista") +
+  stat_summary(fun.y = mean, geom = "line", colour = "black", aes(group = 1)) +
+  coord_cartesian(ylim = c(0, 11))
+
+# média de confiança nos políticos - eleitores populistas
+line9 <- ggplot(data = essrrp, aes(x = essround, y = trstplt)) +
+  theme_classic() +
+  theme(plot.title = element_text(size = 12, hjust = .5, face = "bold"),
+        plot.caption = element_text(hjust = .5)) +
+  scale_y_continuous(limits = c(1, 11), breaks = 1 : 11) +
+  scale_x_continuous(limits = c(1, 8), breaks = 1 : 8, labels = c("2002", "2004",
+                                                                  "2006", "2008",
+                                                                  "2010", "2012",
+                                                                  "2014", "2016")) +
+  labs(x = "Ano do survey", y = "Média da confiança nos políticos") +
+  ggtitle("Confiança nos políticos - eleitor populista") +
+  stat_summary(fun.y = mean, geom = "line", colour = "black", aes(group = 1)) +
+  coord_cartesian(ylim = c(0, 11))
+
+
 ##### gráficos de densidade #####
 # density plot 1 - posicionamento dos eleitores e partidos num eixo esquerda-direita
 dplot1 <- dplot(essgeneral$lrscale, essrrp$lrscale, 1, 
